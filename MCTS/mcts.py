@@ -206,6 +206,7 @@ def Policy_Player_MCTS(mytree):
     for i in range(MCTS_POLICY_EXPLORE):
         mytree.explore()
 
+    # choose the next action based on the _value_ of the child nodes
     next_tree, next_action = mytree.next()
 
     # note that here we are detaching the current node and returning
@@ -218,12 +219,25 @@ def Policy_Player_MCTS(mytree):
     return next_tree, next_action
 
 
-episodes = 3
+def show_image(image):
+    """
+    This function is used to display the image of the game.
+    """
+    plt.imshow(image)  # Display the image
+    plt.draw()
+    plt.pause(0.02)  # Pause to render the image, adjust time as needed
+    plt.clf()  # Cl
+
+
+RENDER = True
 rewards = []
 moving_average = []
 GAME_NAME = "CartPole-v0"
-MCTS_POLICY_EXPLORE = 10  # MCTS exploring constant: the higher, the more
-# reliable, but slower in execution time
+# GAME_NAME = "Acrobot-v1"
+# GAME_NAME = "LunarLander-v2"  # won't work, because it's observation space is (210, 160, 3)
+
+# MCTS exploring constant: the higher, the more reliable, but slower in execution time
+MCTS_POLICY_EXPLORE = 8
 
 """
 Here we are experimenting with our implementation:
@@ -234,37 +248,40 @@ working.
 - For CartPole-v0, in particular, 200 is the maximum possible reward.
 """
 
-for e in range(episodes):
-    reward_e = 0
-    game = gym.make(GAME_NAME)
+reward_e = 0
+game = gym.make(GAME_NAME, render_mode="rgb_array")
 
-    GAME_ACTIONS = game.action_space.n
-    GAME_OBS = game.observation_space.shape[0]
+GAME_ACTIONS = game.action_space.n
+GAME_OBS = game.observation_space.shape[0]
 
-    observation = game.reset()
-    done = False
+observation = game.reset()
+done = False
 
-    new_game = deepcopy(game)
+new_game = deepcopy(game)
 
-    # create the root node of the MCTS tree. It doesn't have children yet.
-    mytree = Node(new_game, False, 0, observation, 0)
+# create the root node of the MCTS tree. It doesn't have children yet.
+mytree = Node(new_game, False, 0, observation, 0)
 
-    print("episode #" + str(e + 1))
+while not done:
+    # update the expected value of future moves using MCTS
+    # Policy_Player_MCTS will play random games until the end and update the values of the tree nodes
+    # each time, Policy_Player_MCTS returns a tree with the root detached (removed),
+    # so that the next optimal step of the actual game (not to be confused with the random MCTS games)
+    # becomes the root of the tree
+    mytree, action = Policy_Player_MCTS(mytree)
+    observation, reward, done, _, _ = game.step(action)
+    reward_e = reward_e + reward
 
-    while not done:
-        mytree, action = Policy_Player_MCTS(mytree)
-        observation, reward, done, _, _ = game.step(action)
-        reward_e = reward_e + reward
-        # uncomment this if you want to see your agent in action!
-        # game.render()
+    if RENDER:
+        show_image(game.render())
 
-        if done:
-            print("reward_e " + str(reward_e))
-            game.close()
-            break
+    if done:
+        print("reward_e " + str(reward_e))
+        game.close()
+        break
 
-    rewards.append(reward_e)
-    moving_average.append(np.mean(rewards[-100:]))
+rewards.append(reward_e)
+moving_average.append(np.mean(rewards[-100:]))
 
 plt.plot(rewards)
 plt.plot(moving_average)
