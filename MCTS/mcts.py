@@ -22,6 +22,7 @@ class Node:
 
         # total rewards from MCTS exploration
         self.T = 0
+
         # visit count
         self.N = 0
 
@@ -60,6 +61,7 @@ class Node:
         return (self.T / self.N) + c * sqrt(log(top_node.N) / self.N)
 
     def detach_parent(self):
+        # free memory detaching nodes
         del self.parent
         self.parent = None
 
@@ -73,6 +75,7 @@ class Node:
 
         if self.done:
             return
+
         actions = []
         games = []
         for i in range(GAME_ACTIONS):
@@ -120,7 +123,7 @@ class Node:
             current.create_child()  # expand the node (by creating 2 children)
             if current.child:
                 current = random.choice(list(current.child.values()))  # randomly pick a child
-            current.T = current.T + current.rollout()
+            current.T = current.T + current.rollout()  # update the values of the node
 
         current.N += 1  # increment the number of visits to the current node
 
@@ -133,12 +136,13 @@ class Node:
 
     def rollout(self):
         """
-        The rollout is a random play from a copy of the environment
-        of the current node using random moves.This will give us a
-        value for the current node. Taken alone, this value is quite random,
-        but, the more rollouts we will do for such node,the more accurate the
-        average of the value for such node will be. This is at the core of the
-        MCTS algorithm.
+        The rollout is a random play from a copy of the
+        environment of the current node using random moves.
+        This will give us a value for the current node. Taken
+        alone, this value is quite random, but, the more
+        rollouts we will do for such node,the more accurate the
+        average of the value for such node will be. This is at
+        the core of the MCTS algorithm.
         """
 
         if self.done:
