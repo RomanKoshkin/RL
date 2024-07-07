@@ -284,7 +284,7 @@ BUFFER_SIZE = int(1000)  # replay buffer size
 BATCH_SIZE = 128  # minibatch size
 UPDATE_EVERY = 1
 POLICY_BASE_LR = 0.001
-POLICY_WARMUP_EPOCHS = 3
+POLICY_WARMUP_EPOCHS = 150
 
 EPISODES = 500
 
@@ -380,7 +380,7 @@ for e in trange(EPISODES):
         if RENDER:
             show_image(game.render(), game_finished=done)
 
-        if done:
+        if done or (reward_e >= MAX_REWARD):
             for i in range(len(obs)):
                 replay_buffer.add(obs[i], reward_e, p_obs[i], ps[i])
             game.close()
@@ -426,9 +426,9 @@ for e in trange(EPISODES):
             )
         )
 
-if SAVE_MODELS:
-    torch.save(policy_v, "value_net_full.pth")
-    torch.save(policy_p, "policy_net_full.pth")
+        if SAVE_MODELS:
+            torch.save(policy_v, "value_net_full.pth")
+            torch.save(policy_p, "policy_net_full.pth")
 
 
 # plot rewards, value losses and policy losses
