@@ -6,6 +6,7 @@ from networks import PolicyV, PolicyP
 import gym
 import random
 import time
+import argparse
 import wandb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +15,14 @@ import torch.nn as nn
 import torch.optim as optim
 
 c = 1.0
+
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--runid", type=int, default=None)
+args = argparser.parse_args()
+runid = args.runid
+
+name_suffix = '_' + str(runid) if runid is not None else ''
 
 
 class Node:
@@ -284,7 +293,7 @@ BUFFER_SIZE = int(1000)  # replay buffer size
 BATCH_SIZE = 128  # minibatch size
 UPDATE_EVERY = 1
 POLICY_BASE_LR = 0.001
-POLICY_WARMUP_EPOCHS = 150
+POLICY_WARMUP_EPOCHS = 100
 
 EPISODES = 500
 
@@ -308,8 +317,8 @@ policy_v = PolicyV(OBSERVATION_DIM, HIDDEN_DIM)
 policy_p = PolicyP(ACTION_SPACE, OBSERVATION_DIM, HIDDEN_DIM)
 
 if CONTINUE_TRAINING:
-    policy_v = torch.load("value_net_full.pth")
-    policy_p = torch.load("policy_net_full.pth")
+    policy_v = torch.load(f"WEIGHTS/value_net_full{name_suffix}.pth")
+    policy_p = torch.load(f"WEIGHTS/policy_net_full{name_suffix}.pth")
 
 # Optimizers
 optimizer_v = optim.Adam(policy_v.parameters(), lr=0.001)  # You can adjust learning rate as needed
@@ -427,8 +436,8 @@ for e in trange(EPISODES):
         )
 
         if SAVE_MODELS:
-            torch.save(policy_v, "value_net_full.pth")
-            torch.save(policy_p, "policy_net_full.pth")
+            torch.save(policy_v, f"WEIGHTS/value_net_full{name_suffix}.pth")
+            torch.save(policy_p, f"WEIGHTS/policy_net_full{name_suffix}.pth")
 
 
 # plot rewards, value losses and policy losses

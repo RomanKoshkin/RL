@@ -1,7 +1,15 @@
 import gym
 import matplotlib.pyplot as plt
 import torch
+import argparse
 
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--runid", type=int, default=None)
+args = argparser.parse_args()
+runid = args.runid
+
+name_suffix = '_' + str(runid) if runid is not None else ''
 
 def show_image(image, game_finished=False):
     """
@@ -18,8 +26,9 @@ def show_image(image, game_finished=False):
 RENDER = True
 GAME_NAME = "CartPole-v1"
 
-# policy_v = torch.load("value_net_full.pth")
-policy_p = torch.load("policy_net_full.pth")
+policy_v = torch.load(f"WEIGHTS/value_net_full{name_suffix}.pth")
+policy_p = torch.load(f"WEIGHTS/policy_net_full{name_suffix}.pth")
+
 game = gym.make(GAME_NAME, render_mode="rgb_array")
 observation, _ = game.reset()
 observation = torch.from_numpy(observation).float().unsqueeze(0)
